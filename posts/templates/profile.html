@@ -29,9 +29,9 @@
                                 Записей: {{ author.author_posts.count }}
                             </div>
                         </li>
-                        {% if user != author and user.is_authenticated %}
+                        {% if user != author %}
                             <li class="list-group-item">
-                                {% if follower %}
+                                {% if is_follower %}
                                     <a class="btn btn-lg btn-light"
                                        href="{% url 'profile_unfollow' author.username %}" role="button">
                                         Отписаться

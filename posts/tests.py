@@ -315,6 +315,63 @@ class TestFollow(TestCase):
         self.assertFalse(follow,
                          msg='Пользователь не смог отписаться от автора.')
 
+    def test_double_follow(self):
+        self.client.force_login(self.user1)
+        response = self.client.get(
+            reverse('profile', args=[self.user3.username]))
+        self.assertContains(response, 'Подписаться',
+                            msg_prefix='Предложение подписаться не появляется '
+                                       'персональной странице пользователя.')
+        self.client.get(reverse('profile_follow', args=[self.user3.username]))
+        response = self.client.get(
+            reverse('profile', args=[self.user3.username]))
+        self.assertContains(response, 'Отписаться',
+                            msg_prefix='Предложение отписаться не появляется '
+                                       'на персональной странице '
+                                       'пользователя.')
+        self.client.get(reverse('profile_follow', args=[self.user3.username]))
+        response = self.client.get(
+            reverse('profile', args=[self.user3.username]))
+        self.assertContains(response, 'Отписаться',
+                            msg_prefix='После второй попытки подписаться, '
+                                       'исчезло предложение отписаться.')
+        following = self.user3.following.count()
+        self.assertEqual(following, 1, msg='Пользователь отписался после '
+                                           'двойной подписки.')
+
+    def test_double_unfollow(self):
+        self.client.force_login(self.user1)
+        self.client.get(
+            reverse('profile_unfollow', args=[self.user3.username]))
+        response = self.client.get(
+            reverse('profile', args=[self.user3.username]))
+        self.assertContains(response, 'Подписаться',
+                            msg_prefix='После отписки без подписки, '
+                                       'исчезло предложение подписаться.')
+        following = self.user3.following.count()
+        self.assertEqual(following, 0, msg='Пользователь подписался '
+                                           'после двойной отписки.')
+
+    def test_follow_yourself(self):
+        self.client.force_login(self.user1)
+        response = self.client.get(
+            reverse('profile', args=[self.user1.username]))
+        self.assertNotContains(response, 'Подписаться',
+                               msg_prefix='На собственной персональной '
+                                          'странице есть предложение '
+                                          'подписаться.')
+
+        self.client.get(reverse('profile_follow', args=[self.user1.username]))
+        response = self.client.get(
+            reverse('profile', args=[self.user1.username]))
+        self.assertNotContains(response, 'Отписаться',
+                               msg_prefix='На На собственной персональной '
+                                          'странице есть предложение '
+                                          'отписаться.')
+        following = self.user1.following.count()
+        self.assertEqual(following, 0,
+                         msg='Удалось подписаться на самого себя.')
+
     def test_profile_follow_if_not_logged_in(self):
         self.client.get(reverse('profile_follow', args=[self.user3.username]))
         follow = self.user1.follower.filter(author=self.user3).exists()

@@ -26,6 +26,8 @@ DEBUG = True
 
 SITE_ID = 2
 
+CACHE_TIMEOUT = 20
+
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
@@ -73,6 +75,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'yatube.context_processors.year',
+                'yatube.context_processors.cache_timeout',
             ],
         },
     },

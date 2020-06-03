@@ -38,7 +38,7 @@
                 <!-- Пост -->
                 {% include "post_item.html" with post=post %}
                 <!-- Комментарии -->
-                {% include 'comments.html' %}
+                {% include 'comments.html' with comments=post.post_comments.all %}
             </div>
         </div>
     </main>

@@ -37,8 +37,24 @@ class Comment(models.Model):
     created = models.DateTimeField('date published', auto_now_add=True,
                                    db_index=True)
 
+    class Meta:
+        ordering = ['-created']
+
     def __str__(self):
         return f'{self.pk} - {self.author} - {self.text[:20]}'
+
+
+class FollowManager(models.Manager):
+    def is_following(self, user, author):
+        return self.filter(user=user, author=author).exists()
+
+    @staticmethod
+    def following_posts(user, tag):
+        follows = Follow.objects.filter(user=user).all()
+        authors = follows.values_list(tag, flat=True)
+        post_list = Post.objects.filter(author__in=authors).order_by(
+            '-pub_date').all()
+        return post_list
 
 
 class Follow(models.Model):
@@ -46,6 +62,7 @@ class Follow(models.Model):
                              related_name='follower')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='following')
+    objects = FollowManager()
 
     def __str__(self):
         return f'{self.pk} - {self.user} - {self.author}'
